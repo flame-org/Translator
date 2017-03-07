@@ -2,7 +2,8 @@
 
 namespace Flame\Translator;
 
-use Nette;
+use Nette,
+	Tracy;
 
 /**
  * Panel for Nette DebugBar, which enables you to translate strings
@@ -90,8 +91,8 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 		$module = (!$presenterName) ? : strtolower(str_replace(':', '.', ltrim(substr($presenterName, 0, -(strlen(strrchr($presenterName, ':')))), ':')));
 		$activeFile = (in_array($module, $files)) ? $module : $files[0];
 
-		if ($this->container->session->isStarted()) {
-			$session = $this->container->session->getSection(static::SESSION_NAMESPACE);
+		if ($this->container->getService('session')->isStarted()) {
+			$session = $this->container->getService('session')->getSection(static::SESSION_NAMESPACE);
 			$untranslatedStack = isset($session['stack']) ? $session['stack'] : array();
 			foreach ($strings as $string => $data) {
 				if (!$data) {
@@ -118,12 +119,12 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	{
 		// Try starting the session
 		try {
-			$session = $this->container->session->getSection(self::SESSION_NAMESPACE);
+			$session = $this->container->getService('session')->getSection(self::SESSION_NAMESPACE);
 		} catch (Nette\InvalidStateException $e) {
 			$session = FALSE;
 		}
 
-		$request = $this->container->httpRequest;
+		$request = $this->container->getService('httpRequest');
 		if ($request->isPost() && $request->isAjax() && $request->getHeader(self::XHR_HEADER)) {
 			$data = json_decode(file_get_contents('php://input'));
 			$translator = $this->translator;
@@ -179,6 +180,6 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	 */
 	public static function register(Nette\DI\Container $container, IEditable $translator, $layout = NULL, $height = NULL)
 	{
-		Nette\Diagnostics\Debugger::$bar->addPanel(new static($container, $translator, $layout, $height));
+		Tracy\Debugger::getBar()->addPanel(new static($container, $translator, $layout, $height));
 	}
 }

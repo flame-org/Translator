@@ -90,8 +90,8 @@ class Gettext extends Nette\Object implements IEditable
 	public function __construct(Nette\DI\Container $container, array $files = null, $lang = 'cs')
 	{
 		$this->container = $container;
-		$this->session = $storage = $container->session->getSection(static::SESSION_NAMESPACE);
-		$this->cache = new Nette\Caching\Cache($container->cacheStorage, static::SESSION_NAMESPACE);
+		$this->session = $storage = $container->getService('session')->getSection(static::SESSION_NAMESPACE);
+		$this->cache = new Nette\Caching\Cache($container->getService('cacheStorage'), static::SESSION_NAMESPACE);
 
 		if (count($files) > 0) {
 			foreach($files as $identifier => $dir) {
@@ -285,7 +285,7 @@ class Gettext extends Nette\Object implements IEditable
 			if (!empty($message))
 				$message = (is_array($message) && $plural !== null && isset($message[$plural])) ? $message[$plural] : $message;
 		} else {
-			if (!$this->container->httpResponse->isSent() || $this->container->session->isStarted()) {
+			if (!$this->container->getService('httpResponse')->isSent() || $this->container->getService('session')->isStarted()) {
 				$space = $this->session;
 				if (!isset($space->newStrings[$this->lang]))
 					$space->newStrings[$this->lang] = array();
